@@ -1,0 +1,27 @@
+apiVersion: agent.tekton.dev/v1alpha1
+kind: AgentConfig
+metadata:
+  name: pipeline-agent-config
+  namespace: default
+spec:
+  # Service account for the agent pod (must have RBAC to create PipelineRuns)
+  serviceAccount: pipeline-agent-sa
+
+  # PVC containing prompts and OPA policies
+  configPVC: agent-config-pvc
+
+  # Maximum iterations for the plan-act-reflect loop
+  maxIterations: 5
+
+  # Timeout for the agent execution
+  timeout: 10m
+
+  # OPA policy enforcement level
+  policy:
+    opa: strict
+
+  # Network policy enforcement
+  networkPolicy: strict
+
+  # LLM provider (claude or gemini)
+  provider: claude

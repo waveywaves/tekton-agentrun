@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentrun-controller
+  namespace: agentrun-system
+  labels:
+    app: agentrun-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentrun-controller
+  template:
+    metadata:
+      labels:
+        app: agentrun-controller
+    spec:
+      serviceAccountName: agentrun-controller
+      containers:
+        - name: controller
+          # ko will replace this with the built image
+          image: ko://github.com/waveywaves/agentrun-controller/cmd/controller
+          imagePullPolicy: IfNotPresent
+          args:
+            - --agent-image=kind.local/agent-fcd44e8c80f733d0679782e613dae706:latest
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop:
+                - ALL
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault

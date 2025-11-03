@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: buildpacks
+  namespace: default
+spec:
+  description: Build a container image using Cloud Native Buildpacks
+  params:
+    - name: image
+      type: string
+      description: Reference of the image to build
+    - name: source-url
+      type: string
+      description: URL of the source repository
+  workspaces:
+    - name: source
+      description: Workspace where source code is cloned
+  tasks:
+    - name: fetch-source
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.source-url)
+    - name: build-image
+      runAfter: ["fetch-source"]
+      taskRef:
+        name: buildpacks
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: APP_IMAGE
+          value: $(params.image)
+        - name: BUILDER_IMAGE
+          value: paketobuildpacks/builder:base
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: deploy
+  namespace: default
+spec:
+  description: Deploy an application to Kubernetes
+  params:
+    - name: app-name
+      type: string
+      description: Name of the application
+    - name: namespace
+      type: string
+      description: Target namespace
+      default: default
+    - name: replicas
+      type: string
+      description: Number of replicas
+      default: "1"
+  tasks:
+    - name: create-deployment
+      taskRef:
+        name: kubectl-deploy
+      params:
+        - name: app-name
+          value: $(params.app-name)
+        - name: namespace
+          value: $(params.namespace)
+        - name: replicas
+          value: $(params.replicas)

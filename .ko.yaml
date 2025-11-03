@@ -1,0 +1,31 @@
+# ko configuration for building agentrun-controller images
+
+# Default base image
+defaultBaseImage: cgr.dev/chainguard/static:latest
+
+# Base images per import path
+baseImageOverrides:
+  # Agent runtime needs a shell and ca-certificates for HTTPS
+  github.com/waveywaves/agentrun-controller/cmd/agent: cgr.dev/chainguard/wolfi-base:latest
+  # Controller can use static base
+  github.com/waveywaves/agentrun-controller/cmd/controller: cgr.dev/chainguard/static:latest
+
+# Build configuration
+builds:
+  - id: controller
+    main: ./cmd/controller
+    env:
+      - CGO_ENABLED=0
+      - GOOS=linux
+      - GOARCH=amd64
+    ldflags:
+      - -s -w
+
+  - id: agent
+    main: ./cmd/agent
+    env:
+      - CGO_ENABLED=0
+      - GOOS=linux
+      - GOARCH=amd64
+    ldflags:
+      - -s -w

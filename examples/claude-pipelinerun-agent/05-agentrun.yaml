@@ -1,0 +1,47 @@
+apiVersion: agent.tekton.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: create-build-pipeline
+  namespace: default
+spec:
+  # Reference to the AgentConfig
+  configRef:
+    name: pipeline-agent-config
+
+  # The goal for the agent to achieve
+  goal: |
+    Create a PipelineRun for building a container image.
+    Use the 'buildpacks' Pipeline and set the following parameters:
+    - image: docker.io/myorg/myapp:v1.0.0
+    - source-url: https://github.com/myorg/myapp
+
+    Name the PipelineRun 'myapp-build-v1'.
+
+  # Additional context hints (optional)
+  context:
+    hints:
+      - "Check if the buildpacks Pipeline exists first"
+      - "Make sure to configure the source workspace"
+---
+apiVersion: agent.tekton.dev/v1alpha1
+kind: AgentRun
+metadata:
+  name: deploy-app
+  namespace: default
+spec:
+  configRef:
+    name: pipeline-agent-config
+
+  goal: |
+    I need to deploy my application to the cluster.
+    Look for a deployment Pipeline and create a PipelineRun with:
+    - app-name: myapp
+    - namespace: production
+    - replicas: 3
+
+    Use a descriptive name for the PipelineRun.
+
+  context:
+    hints:
+      - "Check what Pipelines are available"
+      - "Use the current timestamp in the PipelineRun name"
